@@ -1,107 +1,111 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using GiftGenieAPIWebApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GiftGenieAPIWebApp.Models;
+using System.Security.Claims;
 
 namespace GiftGenieAPIWebApp.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UsersController : ControllerBase
+    [Authorize]
+    public class UsersController : Controller
     {
-        private readonly GiftGenieContext _context;
+        private readonly GiftGenieContext _db;
 
-        public UsersController(GiftGenieContext context)
+        public UsersController(GiftGenieContext db)
         {
-            _context = context;
+            _db = db;
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> Search(string? q)
+        {
+            var users = string.IsNullOrWhiteSpace(q)
+                ? new List<User>()
+                : await _db.Users
+                    .Where(u => u.Username.Contains(q))
+                    .Take(20)
+                    .ToListAsync();
+
+            ViewBag.Query = q;
+            return View(users);
         }
 
-        // GET: api/Users
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<IActionResult> Profile(int id)
         {
-            return await _context.Users.ToListAsync();
+            var meId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var usr = await _db.Users
+                .Include(u => u.Wishlists)
+                    .ThenInclude(w => w.Gifts)
+                        .ThenInclude(g => g.Images)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (usr == null) return NotFound();
+
+            var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
+                   (f.UserId == meId && f.FriendId == id) ||
+                   (f.UserId == id && f.FriendId == meId));
+
+            ViewBag.FriendStatus = fr?.Status; 
+            ViewBag.IsRequestOut = fr?.UserId == meId; 
+
+            return View(usr);
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.UserId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<IActionResult> AddFriend(int id)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var meId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (meId == id) return BadRequest();
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
-        }
+            bool exists = await _db.Friendships.AnyAsync(f =>
+                   (f.UserId == meId && f.FriendId == id) ||
+                   (f.UserId == id && f.FriendId == meId));
 
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            if (!exists)
             {
-                return NotFound();
+                _db.Friendships.Add(new Friendship
+                {
+                    UserId = meId,
+                    FriendId = id,
+                    Status = FriendStatuses.Pending
+                });
+                await _db.SaveChangesAsync();
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return RedirectToAction(nameof(Profile), new { id });
         }
 
-        private bool UserExists(int id)
+        [HttpPost]
+        public async Task<IActionResult> Respond(int id, bool accept)
         {
-            return _context.Users.Any(e => e.UserId == id);
+            var meId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
+                   f.UserId == id && f.FriendId == meId && f.Status == FriendStatuses.Pending);
+
+            if (fr != null)
+            {
+                fr.Status = accept ? FriendStatuses.Accepted : FriendStatuses.Rejected;
+                await _db.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Profile), new { id });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveFriend(int id)
+        {
+            var meId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
+                   (f.UserId == meId && f.FriendId == id) ||
+                   (f.UserId == id && f.FriendId == meId));
+
+            if (fr != null)
+            {
+                _db.Friendships.Remove(fr);
+                await _db.SaveChangesAsync();
+            }
+            return RedirectToAction("Profile", new { id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!) });
+
         }
     }
 }

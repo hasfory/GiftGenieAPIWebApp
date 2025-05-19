@@ -1,0 +1,97 @@
+﻿@model GiftGenieAPIWebApp.Models.Gift
+@{
+    ViewData["Title"] = "Delete Gift";
+    var wishlistId = ViewBag.WishlistId;
+}
+
+<style>
+    :root {
+        --pink-light: #ffe4ec;
+        --green-light: #e0ffe4;
+        --green: #66bb6a;
+        --pink: #ff80ab;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, var(--pink-light) 0%, transparent 60%), radial-gradient(circle at 80% 80%, var(--green-light) 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+
+    .page-shell {
+        max-width: 600px;
+        margin: 4rem auto;
+        padding: 2rem;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(25px);
+        border-radius: 1rem;
+        box-shadow: 0 15px 40px rgba(0,0,0,.1);
+    }
+
+    .gg-card {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: .8rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,.07);
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control {
+        border-radius: 1rem;
+        padding: .6rem 1rem;
+    }
+
+    .btn-outline-green {
+        border: 2px solid var(--green);
+        color: var(--green);
+        background: transparent;
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        transition: .2s;
+    }
+
+        .btn-outline-green:hover {
+            background: var(--green);
+            color: #fff;
+        }
+
+    .btn-outline-pink {
+        border: 2px solid var(--pink);
+        color: var(--pink);
+        background: transparent;
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        transition: .2s;
+    }
+
+        .btn-outline-pink:hover {
+            background: var(--pink);
+            color: #fff;
+        }
+
+    .text-danger {
+        margin-top: .25rem;
+    }
+</style>
+
+<div class="page-shell">
+    <h1 class="mb-4">Delete Gift</h1>
+    <div class="gg-card">
+        <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+        <form asp-action="DeleteConfirmed" asp-controller="Gifts" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="GiftId" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn-outline-pink">Delete</button>
+                <a asp-controller="Wishlist" asp-action="Details" asp-route-id="@wishlistId" class="btn-outline-green">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

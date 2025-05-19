@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using GiftGenieAPIWebApp.Models;
 
 namespace GiftGenieAPIWebApp.Models
 {
@@ -18,24 +19,28 @@ namespace GiftGenieAPIWebApp.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // User → Wishlists
             modelBuilder.Entity<Wishlist>()
                 .HasOne(w => w.User)
                 .WithMany(u => u.Wishlists)
                 .HasForeignKey(w => w.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Wishlist → Gifts
             modelBuilder.Entity<Gift>()
                 .HasOne(g => g.Wishlist)
                 .WithMany(w => w.Gifts)
                 .HasForeignKey(g => g.WishlistId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Gift → Images (ONLY this one)
             modelBuilder.Entity<Image>()
                 .HasOne(i => i.Gift)
                 .WithMany(g => g.Images)
                 .HasForeignKey(i => i.GiftId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Friendships
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.Friendships)

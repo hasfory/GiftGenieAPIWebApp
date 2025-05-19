@@ -1,0 +1,52 @@
+﻿@model IEnumerable<GiftGenieAPIWebApp.Models.Wishlist>
+@{
+    ViewData["Title"] = "Public Wishlists";
+}
+
+<h2>Public Wishlists</h2>
+
+@foreach (var wl in Model)
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">@wl.Title</h5>
+            <small class="text-muted">by @wl.User.Username</small>
+        </div>
+        <div class="card-body">
+            @if (!wl.Gifts.Any())
+            {
+                <p class="text-muted">No gifts yet.</p>
+            }
+            else
+            {
+                <div class="d-flex flex-wrap">
+                    @foreach (var gift in wl.Gifts)
+                    {
+                        <div class="card m-2" style="width: 12rem;">
+                            @if (gift.Images.Any())
+{
+    <text>
+        @{
+            var imgBytes = gift.Images.First().Photo;
+            var base64 = Convert.ToBase64String(imgBytes);
+        }
+        <img src="data:image/jpeg;base64,@base64" class="card-img-top" alt="@gift.Name" />
+    </text>
+}
+
+                            <div class="card-body">
+                                <h6 class="card-title">@gift.Name</h6>
+                                @if (gift.IsPurchased)
+                                {
+                                    <span class="badge bg-success">Purchased</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            <a asp-action="Details" asp-route-id="@wl.WishlistId"
+               class="btn btn-link mt-3">View details →</a>
+        </div>
+    </div>
+}

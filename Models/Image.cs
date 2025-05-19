@@ -1,15 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class Image
+namespace GiftGenieAPIWebApp.Models
 {
-    [Key]
-    public int ImageId { get; set; }
-
-    [Required]
-    public byte[] Photo { get; set; } = default!; 
-
-    [ForeignKey("Gift")]
-    public int GiftId { get; set; }
-    public Gift Gift { get; set; } = default!;
+    public class Image
+    {
+        [Key]
+        public int ImageId { get; set; }
+        [Required]
+        public byte[] Photo { get; set; } = default!;
+        [ForeignKey(nameof(Gift))]
+        public int GiftId { get; set; }
+        public Gift Gift { get; set; } = default!;
+    }
 }

@@ -1,0 +1,233 @@
+﻿/* wwwroot/css/site.css */
+
+/* ─── БАЗОВІ КОЛЬОРИ ───────────────────────────────────────────────── */
+:root {
+    --pink: #ff80ab;
+    --pink-light: #ffe4ec;
+    --green: #66bb6a;
+    --green-light: #e0ffe4;
+}
+
+/* ─── РОЗМИТИЙ ГРАДІЄНТНИЙ ФОН ───────────────────────────────────────── */
+body {
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, var(--pink-light) 0%, transparent 60%), radial-gradient(circle at 80% 80%, var(--green-light) 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+
+/* ─── КНОПКИ ─────────────────────────────────────────────────────────── */
+.btn {
+    font-weight: 600;
+    border-radius: 2rem;
+    transition: background-color .25s, color .25s, opacity .2s;
+    cursor: pointer;
+}
+
+.btn-pink {
+    background: var(--pink);
+    color: #fff;
+    border: none;
+}
+
+    .btn-pink:hover {
+        opacity: .85;
+    }
+
+.btn-green {
+    background: var(--green);
+    color: #fff;
+    border: none;
+}
+
+    .btn-green:hover {
+        opacity: .85;
+    }
+
+.btn-outline-pink {
+    border: 2px solid var(--pink);
+    background: transparent;
+    color: var(--pink);
+}
+
+    .btn-outline-pink:hover {
+        background: var(--pink);
+        color: #fff;
+    }
+
+.btn-outline-green {
+    border: 2px solid var(--green);
+    background: transparent;
+    color: var(--green);
+}
+
+    .btn-outline-green:hover {
+        background: var(--green);
+        color: #fff;
+    }
+
+/* ─── КАРТКИ ТА ОБОЛОНКИ ───────────────────────────────────────────── */
+.page-shell {
+    max-width: 1400px;
+    margin: 4rem auto;
+    padding: 3rem 2rem;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(30px);
+    border-radius: 1.25rem;
+    box-shadow: 0 25px 60px rgba(0,0,0,.10);
+}
+
+.gg-card {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(25px);
+    border-radius: 1rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+    .gg-card h5 {
+        font-weight: 600;
+    }
+
+/* ─── СПИСКИ ────────────────────────────────────────────────────────── */
+.gg-list > li {
+    padding: .8rem 1.2rem;
+    border-radius: .75rem;
+    transition: background .15s;
+}
+
+    .gg-list > li:hover {
+        background: rgba(0,0,0,.04);
+    }
+
+/* ─── ДРОПДАУН (анімований) ─────────────────────────────────────────── */
+@keyframes dropFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.fancy-dd, .fancy-dropdown {
+    animation: dropFade .25s ease-out;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,.75);
+    border-radius: .8rem;
+    padding: .25rem;
+    box-shadow: 0 12px 25px rgba(0,0,0,.12);
+}
+
+    .fancy-dd li,
+    .fancy-dropdown li {
+        list-style: none;
+    }
+
+    .fancy-dd .dropdown-item.logout,
+    .fancy-dropdown .dropdown-item.logout {
+        color: #e55353;
+    }
+
+        .fancy-dd .dropdown-item.logout:hover,
+        .fancy-dropdown .dropdown-item.logout:hover {
+            background: rgba(229,83,83,.1);
+        }
+
+/* ─── ГЕРЦ-КОНТЕЙНЕР (ГОЛОВНА) ─────────────────────────────────────── */
+.hero-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 4rem;
+    margin-top: 3rem;
+    background: transparent;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.1);
+}
+
+.hero-left {
+    flex: 1;
+    padding-right: 2rem;
+}
+
+.project-title {
+    font-size: 2.5rem;
+    color: var(--pink);
+    margin-bottom: 1rem;
+}
+
+.project-desc {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #444;
+}
+
+.hero-right {
+    flex: 1;
+    padding-left: 2rem;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    animation: fadeIn .3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-input {
+    padding: .7rem 1rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 1.25rem;
+    background: #fff;
+    font-size: 1rem;
+    transition: border-color .25s, box-shadow .25s;
+    width: 100%;
+}
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--green);
+        box-shadow: 0 0 0 3px rgba(102,187,106,.25);
+    }
+
+    .form-input::placeholder {
+        color: #9b9b9b;
+        opacity: .9;
+    }
+
+/* ─── ПЛЮС НЮАНСИ ──────────────────────────────────────────────────── */
+.gg-card .btn-sm {
+    font-size: .85rem;
+    padding: .25rem .75rem;
+}

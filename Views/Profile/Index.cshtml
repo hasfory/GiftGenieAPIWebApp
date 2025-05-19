@@ -1,0 +1,176 @@
+﻿@model GiftGenieAPIWebApp.Models.User
+@using GiftGenieAPIWebApp.Models
+@{
+    ViewData["Title"] = "My Profile";
+    var friends = Model.Friendships
+        .Where(f => f.Status == FriendStatuses.Accepted).Select(f => f.Friend)
+      .Concat(Model.FriendOf
+        .Where(f => f.Status == FriendStatuses.Accepted).Select(f => f.User))
+      .DistinctBy(u => u.UserId).ToList();
+}
+<style>
+    /* ---- Основний фон із розмитим градієнтом ---- */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, #ffe4ec 0%, transparent 60%), radial-gradient(circle at 80% 80%, #e0ffe4 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+    /* ---- Сторінковий контейнер ---- */
+    .page-shell {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(25px);
+        border-radius: 1rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,.1);
+    }
+    /* ---- Картки (account, friends, wishlist, gift) ---- */
+    .gg-card {
+        background: rgba(255,255,255,.6);
+        backdrop-filter: blur(20px);
+        border-radius: .8rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,.07);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    /* ---- Заголовки розділів ---- */
+    h1, h2 {
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    /* ---- Кнопки Outline-to-Fill ---- */
+    :root {
+        --pink: #ff80ab;
+        --green: #66bb6a;
+    }
+
+    .btn-outline-pink, .btn-outline-green {
+        border: 2px solid;
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        font-weight: 600;
+        background: transparent;
+        transition: .2s;
+    }
+
+    .btn-outline-pink {
+        color: var(--pink);
+        border-color: var(--pink);
+    }
+
+        .btn-outline-pink:hover {
+            background: var(--pink);
+            color: #fff;
+        }
+
+    .btn-outline-green {
+        color: var(--green);
+        border-color: var(--green);
+    }
+
+        .btn-outline-green:hover {
+            background: var(--green);
+            color: #fff;
+        }
+    .gg-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .gg-list > li {
+            padding: .8rem 1rem;
+            border-radius: .6rem;
+            transition: background .15s;
+        }
+
+            .gg-list > li:hover {
+                background: rgba(0,0,0,.04);
+            }
+</style>
+
+<div class="page-shell">
+    <h1 class="mb-4">My Profile</h1>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="gg-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Account Details</h5>
+                    <a asp-controller="Profile" asp-action="Edit" class="btn btn-outline-green btn-sm">Edit</a>
+                </div>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Username</dt>
+                    <dd class="col-sm-8 text-muted">@($"@{Model.Username}")</dd>
+                    <dt class="col-sm-4">Full Name</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+                    <dt class="col-sm-4">Birthdate</dt>
+                    <dd class="col-sm-8">@Model.Birthdate</dd>
+                </dl>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>My Wishlists</h5>
+                <a asp-controller="Wishlist" asp-action="Create" class="btn btn-outline-green btn-sm">Add Wishlist</a>
+            </div>
+            @if (!Model.Wishlists.Any())
+            {
+                <p>You don't have any wishlists yet.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled row row-cols-1 row-cols-md-2 g-3">
+                    @foreach (var wl in Model.Wishlists)
+                    {
+                        <li class="col">
+                            <div class="gg-card d-flex justify-content-between align-items-center">
+                                <span>@wl.Title</span>
+                                <div class="btn-group">
+                                    <a asp-action="Details" asp-controller="Wishlist" asp-route-id="@wl.WishlistId"
+                                       class="btn btn-outline-green btn-sm">View</a>
+                                    <form asp-action="Delete" asp-controller="Wishlist" asp-route-id="@wl.WishlistId"
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-pink btn-sm">Del</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="gg-card">
+                <h5>My Friends (@friends.Count)</h5>
+                @if (!friends.Any())
+                {
+                    <p>You have no friends yet.</p>
+                }
+                else
+                {
+                    <ul class="list-unstyled">
+                        @foreach (var u in friends)
+                        {
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@u.FullName</span>
+                                <div class="btn-group">
+                                    <a asp-controller="Users" asp-action="Profile" asp-route-id="@u.UserId"
+                                       class="btn btn-outline-green btn-sm">View</a>
+                                    <form asp-controller="Users" asp-action="RemoveFriend" asp-route-id="@u.UserId"
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-pink btn-sm">Unfriend</button>
+                                    </form>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

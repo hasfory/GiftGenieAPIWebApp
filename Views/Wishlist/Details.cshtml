@@ -1,0 +1,186 @@
+﻿@model GiftGenieAPIWebApp.Models.Wishlist
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>@Model.Title</h1>
+    @if (User.Identity?.IsAuthenticated == true && int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value) == Model.UserId)
+    {
+        <a asp-controller="Gifts" asp-action="Create" asp-route-wishlistId="@Model.WishlistId" class="btn-add-gift">Add Gift</a>
+    }
+</div>
+
+<div class="mb-4">
+    <p><strong>Owner:</strong> @Model.User.Username</p>
+    <p><strong>Public:</strong> @(Model.IsPublic ? "Yes" : "No")</p>
+</div>
+
+<h2>Gifts</h2>
+@if (!Model.Gifts.Any())
+{
+    <p class="text-muted">No gifts yet.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var gift in Model.Gifts)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 position-relative gift-card">
+                    @if (gift.Images.Any())
+                    {
+                        <img src="data:image/jpeg;base64,@(Convert.ToBase64String(gift.Images.First().Photo))" class="card-img-top" alt="@gift.Name" style="height:200px; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                            <span class="text-muted">No image</span>
+                        </div>
+                    }
+                    <div class="card-body d-flex flex-column">
+                        <h5 class=\"card-title\">@gift.Name</h5>
+                        <p class="card-text mt-2">
+                            @if (gift.IsPurchased)
+                            {
+                                <span class="badge bg-success me-2">Purchased</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary me-2">Not purchased</span>
+                            }
+
+                            @if (!gift.IsPurchased && !string.IsNullOrWhiteSpace(gift.Url))
+                            {
+                                <a href="@gift.Url" target="_blank" class="link-primary">Buy here</a>
+                            }
+                        </p>
+                    </div>
+
+                    @if (User.Identity?.IsAuthenticated == true && int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value) == Model.UserId)
+                    {
+                        <div class="card-overlay d-flex justify-content-center align-items-center">
+                            <a asp-action="Edit" asp-controller="Gifts" asp-route-id="@gift.GiftId" class="btn btn-sm btn-warning me-2">Edit</a>
+                            <a asp-action="Delete" asp-controller="Gifts" asp-route-id="@gift.GiftId" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    :root {
+        --pink-light: #ffe4ec;
+        --green-light: #e0ffe4;
+        --green: #66bb6a;
+        --pink: #ff80ab;
+    }
+    /* фон */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, var(--pink-light) 0%, transparent 60%), radial-gradient(circle at 80% 80%, var(--green-light) 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+    /* контейнер */
+    .page-shell {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(25px);
+        border-radius: 1rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,.1);
+    }
+    /* карточка wishlist info */
+    .gg-card {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: .8rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,.07);
+        margin-bottom: 2rem;
+    }
+    /* кнопки */
+    .btn-outline-green {
+        border: 2px solid var(--green);
+        background: transparent;
+        color: var(--green);
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        transition: .2s;
+    }
+
+        .btn-outline-green:hover {
+            background: var(--green);
+            color: #fff;
+        }
+
+    .btn-outline-pink {
+        border: 2px solid var(--pink);
+        background: transparent;
+        color: var(--pink);
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        transition: .2s;
+    }
+
+        .btn-outline-pink:hover {
+            background: var(--pink);
+            color: #fff;
+        }
+    /* grid подарков */
+    .gift-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: .8rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+        /* overlay кнопок при hover */
+        .gift-card .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: .5rem;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .gift-card:hover .card-overlay {
+            opacity: 1;
+        }
+
+        .gift-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: .8rem;
+            border-top-right-radius: .8rem;
+        }
+
+        .gift-card .card-body {
+            padding: 1rem;
+        }
+
+    .badge {
+        font-size: .8rem;
+    }
+
+    .btn-add-gift {
+        display: inline-block;
+        padding: .6rem 1.2rem;
+        font-weight: 600;
+        border-radius: 2rem;
+        border: 2px solid var(--pink);
+        background: var(--pink);
+        color: #fff;
+        text-decoration: none;
+        transition: background .2s, transform .2s;
+</style>

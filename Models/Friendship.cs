@@ -1,19 +1,26 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class Friendship
+namespace GiftGenieAPIWebApp.Models
 {
-    [Key]
-    public int FriendshipId { get; set; }
+    public static class FriendStatuses
+    {
+        public const string Pending = "Pending";
+        public const string Accepted = "Accepted";
+        public const string Rejected = "Rejected";
+    }
 
-    [ForeignKey("User")]
-    public int UserId { get; set; }
-    public User User { get; set; } = default!;
+    public class Friendship
+    {
+        [Key] public int FriendshipId { get; set; }
 
-    [ForeignKey("Friend")]
-    public int FriendId { get; set; }
-    public User Friend { get; set; } = default!;
+        [ForeignKey(nameof(User))] public int UserId { get; set; }
+        [ForeignKey(nameof(Friend))] public int FriendId { get; set; }
 
-    [Required, MaxLength(20)]
-    public string Status { get; set; } = "pending";
+        [MaxLength(20)]
+        public string Status { get; set; } = FriendStatuses.Pending;
+
+        public User User { get; set; } = default!;
+        public User Friend { get; set; } = default!;
+    }
 }

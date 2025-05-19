@@ -1,22 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class Gift
+namespace GiftGenieAPIWebApp.Models
 {
-    [Key]
-    public int GiftId { get; set; }
+    public class Gift
+    {
+        [Key]
+        public int GiftId { get; set; }
 
-    [Required, MaxLength(100)]
-    public string Name { get; set; } = default!;
+        [Required, MaxLength(100)]
+        public string Name { get; set; } = default!;
 
-    [MaxLength(2048)]
-    public string? Url { get; set; }
+        public bool IsPurchased { get; set; }
 
-    public bool IsPurchased { get; set; }
-
-    [ForeignKey("Wishlist")]
-    public int WishlistId { get; set; }
-    public Wishlist Wishlist { get; set; } = default!;
-
-    public ICollection<Image> Images { get; set; } = new List<Image>();
+        [ForeignKey(nameof(Wishlist))]
+        public int WishlistId { get; set; }
+        [ValidateNever]
+        public Wishlist Wishlist { get; set; } = default!;
+        [Url, MaxLength(200)]
+        public string? Url { get; set; }
+        public ICollection<Image> Images { get; set; } = new List<Image>();
+    }
 }

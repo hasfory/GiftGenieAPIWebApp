@@ -1,107 +1,133 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GiftGenieAPIWebApp.Models;
+using System.Security.Claims;
 
 namespace GiftGenieAPIWebApp.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class GiftsController : ControllerBase
+    [Authorize]
+    public class GiftsController : Controller
     {
         private readonly GiftGenieContext _context;
+        public GiftsController(GiftGenieContext context) => _context = context;
 
-        public GiftsController(GiftGenieContext context)
+        // GET: /Gifts/Create?wishlistId=123
+        public IActionResult Create(int wishlistId)
         {
-            _context = context;
+            ViewBag.WishlistId = wishlistId;
+            return View();
         }
 
-        // GET: api/Gifts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Gift>>> GetGifts()
-        {
-            return await _context.Gifts.ToListAsync();
-        }
-
-        // GET: api/Gifts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Gift>> GetGift(int id)
-        {
-            var gift = await _context.Gifts.FindAsync(id);
-
-            if (gift == null)
-            {
-                return NotFound();
-            }
-
-            return gift;
-        }
-
-        // PUT: api/Gifts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutGift(int id, Gift gift)
-        {
-            if (id != gift.GiftId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(gift).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!GiftExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Gifts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: /Gifts/Create
         [HttpPost]
-        public async Task<ActionResult<Gift>> PostGift(Gift gift)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(int wishlistId, Gift gift, IFormFile? PhotoFile)
         {
+            if (!ModelState.IsValid)
+                return View(gift);
+
+            gift.WishlistId = wishlistId;
+
+            gift.IsPurchased = false;
+
             _context.Gifts.Add(gift);
             await _context.SaveChangesAsync();
+ 
+            if (PhotoFile != null && PhotoFile.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await PhotoFile.CopyToAsync(ms);
+                var image = new Image
+                {
+                    GiftId = gift.GiftId,
+                    Photo = ms.ToArray()
+                };
+                _context.Images.Add(image);
+                await _context.SaveChangesAsync();
+            }
+            if (!ModelState.IsValid)
+            {
+                foreach (var kvp in ModelState)
+                {
+                    foreach (var err in kvp.Value.Errors)
+                    {
+                        Console.WriteLine($"[VALIDATION] {kvp.Key}: {err.ErrorMessage}");
+                    }
+                }
+                return View(gift);
+            }
 
-            return CreatedAtAction("GetGift", new { id = gift.GiftId }, gift);
+            return RedirectToAction("Details", "Wishlist", new { id = wishlistId });
         }
 
-        // DELETE: api/Gifts/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGift(int id)
+
+        // GET: /Gifts/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             var gift = await _context.Gifts.FindAsync(id);
-            if (gift == null)
-            {
+            if (gift == null) return NotFound();
+            return View(gift);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Gift gift, IFormFile? PhotoFile)
+        {
+            if (id != gift.GiftId || !ModelState.IsValid)
+                return View(gift);
+
+            var existingGift = await _context.Gifts
+                .Include(g => g.Images)
+                .FirstOrDefaultAsync(g => g.GiftId == id);
+
+            if (existingGift == null)
                 return NotFound();
+
+            existingGift.Name = gift.Name;
+            existingGift.IsPurchased = gift.IsPurchased;
+
+            if (PhotoFile != null && PhotoFile.Length > 0)
+            {
+                _context.Images.RemoveRange(existingGift.Images);
+
+                using var ms = new MemoryStream();
+                await PhotoFile.CopyToAsync(ms);
+                var image = new Image
+                {
+                    GiftId = gift.GiftId,
+                    Photo = ms.ToArray()
+                };
+                _context.Images.Add(image);
             }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Details", "Wishlist", new { id = existingGift.WishlistId });
+        }
+
+
+        // GET: /Gifts/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var gift = await _context.Gifts
+                .Include(g => g.Wishlist)
+                .FirstOrDefaultAsync(g => g.GiftId == id);
+            if (gift == null) return NotFound();
+            ViewBag.WishlistId = gift.WishlistId;
+            return View(gift);
+        }
+
+        // POST: /Gifts/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var gift = await _context.Gifts.FindAsync(id);
+            if (gift == null) return NotFound();
 
             _context.Gifts.Remove(gift);
             await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool GiftExists(int id)
-        {
-            return _context.Gifts.Any(e => e.GiftId == id);
+            return RedirectToAction("Details", "Wishlist", new { id = gift.WishlistId });
         }
     }
 }
