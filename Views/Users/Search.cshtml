@@ -1,37 +1,109 @@
-﻿@model IEnumerable<GiftGenieAPIWebApp.Models.User>
+﻿@model List<GiftGenieAPIWebApp.Models.User>
 @{
-    ViewData["Title"] = "Search users";
-    var q = ViewBag.Query as string;
+    ViewData["Title"] = "Search Users";
+    var q = ViewBag.Query as string ?? "";
 }
 
-<h2>Search users</h2>
+<style>
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, #ffe4ec 0%, transparent 60%), radial-gradient(circle at 80% 80%, #e0ffe4 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
 
-<form class="table align-middle bg-white shadow-sm rounded">
-    <input type="text" name="q" value="@q" class="form-control" placeholder="Username or Full Name" />
-</form>
+    .page-shell {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(25px);
+        border-radius: 1rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,.1);
+    }
 
-@if (!Model.Any())
-{
-    <p>No users found.</p>
-}
-else
-{
-    <table class="table align-middle bg-white shadow-sm rounded">
-        <thead class="table-light">
-            <tr><th>Full Name</th><th>Username</th><th></th></tr>
-        </thead>
-        <tbody>
-            @foreach (var u in Model)
-            {
-                <tr>
-                    <td>@u.FullName</td>
-                    <td class="text-muted">@($"@{u.Username}")</td>
-                    <td>
-                        <a asp-action="Profile" asp-route-id="@u.UserId"
-                           class="btn btn-outline-pink btn-sm">View</a>
-                    </td>
-                </tr>
+    .gg-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .gg-list > li {
+            padding: .8rem 1rem;
+            border-radius: .6rem;
+            transition: background .15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .gg-list > li:hover {
+                background: rgba(0,0,0,.04);
             }
-        </tbody>
-    </table>
-}
+
+    .btn-outline-green {
+        border: 2px solid #66bb6a;
+        color: #66bb6a;
+        background: transparent;
+        border-radius: 2rem;
+        padding: .4rem 1rem;
+        font-weight: 600;
+        transition: .2s;
+        text-decoration: none;
+    }
+
+        .btn-outline-green:hover {
+            background: #66bb6a;
+            color: #fff;
+        }
+
+    .search-input {
+        width: 100%;
+        max-width: 400px;
+        padding: 0.7rem 1rem;
+        border: 1px solid #d0d0d0;
+        border-radius: 1.25rem;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        transition: border-color .25s ease, box-shadow .25s ease;
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #66bb6a;
+            box-shadow: 0 0 0 3px rgba(102,187,106,.25);
+        }
+</style>
+
+<div class="page-shell">
+    <h1>Search Users</h1>
+
+    <form method="get" asp-action="Search" class="mb-4">
+        <input type="text"
+               name="q"
+               value="@q"
+               placeholder="Search by username or full name..."
+               class="search-input" />
+        <button type="submit" class="btn-outline-green">Search</button>
+    </form>
+
+    @if (Model.Count == 0)
+    {
+        <p class="text-muted">No users found.</p>
+    }
+    else
+    {
+        <ul class="gg-list">
+            @foreach (var user in Model)
+            {
+                <li>
+                    <span>@user.FullName (@("@" + user.Username))</span>
+                    <a asp-controller="Users" asp-action="Profile" asp-route-id="@user.UserId" class="btn-outline-green">View Profile</a>
+                </li>
+            }
+        </ul>
+    }
+</div>

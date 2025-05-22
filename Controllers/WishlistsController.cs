@@ -60,7 +60,7 @@ namespace GiftGenieAPIWebApp.Controllers
             _context.Wishlists.Add(wishlist);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Profile", "Users", new { id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!) });
+            return RedirectToAction("Details", new { id = wishlist.WishlistId });
         }
 
 

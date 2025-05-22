@@ -25,5 +25,6 @@ namespace GiftGenieAPIWebApp.Models
         public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
         public ICollection<Friendship> Friendships { get; set; } = new List<Friendship>();
         public ICollection<Friendship> FriendOf { get; set; } = new List<Friendship>();
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

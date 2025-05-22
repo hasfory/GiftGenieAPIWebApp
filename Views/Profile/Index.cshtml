@@ -1,15 +1,23 @@
 ﻿@model GiftGenieAPIWebApp.Models.User
 @using GiftGenieAPIWebApp.Models
+
 @{
     ViewData["Title"] = "My Profile";
+
     var friends = Model.Friendships
-        .Where(f => f.Status == FriendStatuses.Accepted).Select(f => f.Friend)
-      .Concat(Model.FriendOf
-        .Where(f => f.Status == FriendStatuses.Accepted).Select(f => f.User))
-      .DistinctBy(u => u.UserId).ToList();
+                    .Where(f => f.Status == FriendStatuses.Accepted && f.Friend != null)
+                    .Select(f => f.Friend!)
+                  .Concat(
+                    Model.FriendOf
+                         .Where(f => f.Status == FriendStatuses.Accepted && f.User != null)
+                         .Select(f => f.User!))
+                  .DistinctBy(u => u.UserId)
+                  .ToList();
+
+    var notifications = ViewBag.Notifications as List<Notification> ?? new List<Notification>();
 }
+
 <style>
-    /* ---- Основний фон із розмитим градієнтом ---- */
     body::before {
         content: '';
         position: fixed;
@@ -19,7 +27,7 @@
         filter: blur(100px);
         transform: scale(1.1);
     }
-    /* ---- Сторінковий контейнер ---- */
+
     .page-shell {
         max-width: 1200px;
         margin: 3rem auto;
@@ -29,7 +37,7 @@
         border-radius: 1rem;
         box-shadow: 0 12px 30px rgba(0,0,0,.1);
     }
-    /* ---- Картки (account, friends, wishlist, gift) ---- */
+
     .gg-card {
         background: rgba(255,255,255,.6);
         backdrop-filter: blur(20px);
@@ -38,12 +46,12 @@
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    /* ---- Заголовки розділів ---- */
+
     h1, h2 {
         margin-bottom: 1rem;
         font-weight: 600;
     }
-    /* ---- Кнопки Outline-to-Fill ---- */
+
     :root {
         --pink: #ff80ab;
         --green: #66bb6a;
@@ -56,6 +64,7 @@
         font-weight: 600;
         background: transparent;
         transition: .2s;
+        cursor: pointer;
     }
 
     .btn-outline-pink {
@@ -77,6 +86,7 @@
             background: var(--green);
             color: #fff;
         }
+
     .gg-list {
         list-style: none;
         padding: 0;
@@ -92,16 +102,38 @@
             .gg-list > li:hover {
                 background: rgba(0,0,0,.04);
             }
+
+    .notification-item {
+        padding: .6rem 1rem;
+        border-radius: .6rem;
+        background: #fff4f8;
+        margin-bottom: .6rem;
+        box-shadow: 0 2px 6px rgba(255,128,171,0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .notification-text {
+        font-weight: 600;
+        color: var(--pink);
+    }
+
+    .notification-actions button {
+        margin-left: .5rem;
+    }
 </style>
 
 <div class="page-shell">
-    <h1 class="mb-4">My Profile</h1>
+    <h1>My Profile</h1>
+
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="gg-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Account Details</h5>
-                    <a asp-controller="Profile" asp-action="Edit" class="btn btn-outline-green btn-sm">Edit</a>
+                    <a asp-controller="Profile" asp-action="Edit"
+                       class="btn btn-outline-green btn-sm">Edit</a>
                 </div>
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Username</dt>
@@ -109,17 +141,18 @@
                     <dt class="col-sm-4">Full Name</dt>
                     <dd class="col-sm-8">@Model.FullName</dd>
                     <dt class="col-sm-4">Birthdate</dt>
-                    <dd class="col-sm-8">@Model.Birthdate</dd>
+                    <dd class="col-sm-8">@Model.Birthdate.ToString("yyyy-MM-dd")</dd>
                 </dl>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5>My Wishlists</h5>
-                <a asp-controller="Wishlist" asp-action="Create" class="btn btn-outline-green btn-sm">Add Wishlist</a>
+                <a asp-controller="Wishlist" asp-action="Create"
+                   class="btn btn-outline-green btn-sm">Add Wishlist</a>
             </div>
             @if (!Model.Wishlists.Any())
             {
-                <p>You don't have any wishlists yet.</p>
+                <p>You don’t have any wishlists yet.</p>
             }
             else
             {
@@ -130,11 +163,16 @@
                             <div class="gg-card d-flex justify-content-between align-items-center">
                                 <span>@wl.Title</span>
                                 <div class="btn-group">
-                                    <a asp-action="Details" asp-controller="Wishlist" asp-route-id="@wl.WishlistId"
-                                       class="btn btn-outline-green btn-sm">View</a>
-                                    <form asp-action="Delete" asp-controller="Wishlist" asp-route-id="@wl.WishlistId"
+                                    <a asp-action="Details" asp-controller="Wishlist"
+                                       asp-route-id="@wl.WishlistId"
+                                       class="btn btn-outline-green">View</a>
+                                    <form asp-action="Delete" asp-controller="Wishlist"
+                                          asp-route-id="@wl.WishlistId"
                                           method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-outline-pink btn-sm">Del</button>
+                                        <button type="submit"
+                                                class="btn btn-outline-pink btn-sm">
+                                            Del
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -159,16 +197,48 @@
                             <li class="d-flex justify-content-between align-items-center mb-2">
                                 <span>@u.FullName</span>
                                 <div class="btn-group">
-                                    <a asp-controller="Users" asp-action="Profile" asp-route-id="@u.UserId"
-                                       class="btn btn-outline-green btn-sm">View</a>
-                                    <form asp-controller="Users" asp-action="RemoveFriend" asp-route-id="@u.UserId"
+                                    <a asp-controller="Users" asp-action="Profile"
+                                       asp-route-id="@u.UserId"
+                                       class="btn btn-outline-green">View</a>
+                                    <form asp-controller="Users" asp-action="RemoveFriend"
+                                          asp-route-id="@u.UserId"
                                           method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-outline-pink btn-sm">Unfriend</button>
+                                        <button type="submit"
+                                                class="btn btn-outline-pink btn-sm">
+                                            Unfriend
+                                        </button>
                                     </form>
                                 </div>
                             </li>
                         }
                     </ul>
+                }
+            </div>
+
+            <div class="gg-card mt-4">
+                <h5>Notifications</h5>
+                @if (!notifications.Any())
+                {
+                    <p>No new notifications.</p>
+                }
+                else
+                {
+                    @foreach (var n in notifications)
+                    {
+                        <div class="notification-item">
+                            <span class="notification-text">@n.SenderUser.FullName wants to be friends!</span>
+                            <div class="notification-actions">
+                                <form asp-controller="Users" asp-action="Respond" asp-route-id="@n.SenderUserId" method="post" class="d-inline">
+                                    <input type="hidden" name="accept" value="true" />
+                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                </form>
+                                <form asp-controller="Users" asp-action="Respond" asp-route-id="@n.SenderUserId" method="post" class="d-inline">
+                                    <input type="hidden" name="accept" value="false" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         </div>

@@ -10,6 +10,7 @@ namespace GiftGenieAPIWebApp.Models
         public virtual DbSet<Gift> Gifts { get; set; }
         public virtual DbSet<Image> Images { get; set; }
         public virtual DbSet<Friendship> Friendships { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }  // Додаємо DbSet для сповіщень
 
         public GiftGenieContext(DbContextOptions<GiftGenieContext> options)
             : base(options)
@@ -56,6 +57,16 @@ namespace GiftGenieAPIWebApp.Models
             modelBuilder.Entity<Friendship>()
                 .HasIndex(f => new { f.UserId, f.FriendId })
                 .IsUnique();
+
+            modelBuilder.Entity<Notification>()
+             .HasOne(n => n.User)
+             .WithMany(u => u.Notifications) 
+             .HasForeignKey(n => n.UserId);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.SenderUser)
+                .WithMany()  
+                .HasForeignKey(n => n.SenderUserId);
         }
     }
 }

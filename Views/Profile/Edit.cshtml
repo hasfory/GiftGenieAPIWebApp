@@ -1,0 +1,137 @@
+﻿@model GiftGenieAPIWebApp.Models.User
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<style>
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%, #ffe4ec 0%, transparent 60%), radial-gradient(circle at 80% 80%, #e0ffe4 0%, transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+
+    .page-shell {
+        max-width: 700px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(25px);
+        border-radius: 1rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,.1);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h2 {
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    form label {
+        font-weight: 600;
+        margin-top: 1rem;
+        display: block;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"] {
+        width: 100%;
+        padding: 0.6rem 1rem;
+        margin-top: 0.3rem;
+        border: 1px solid #ccc;
+        border-radius: 1.25rem;
+        font-size: 1rem;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        background: #fff;
+    }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #66bb6a;
+            box-shadow: 0 0 8px rgba(102, 187, 106, 0.5);
+        }
+
+    .btn {
+        margin-top: 2rem;
+        padding: 0.7rem 2rem;
+        font-weight: 700;
+        border-radius: 2rem;
+        cursor: pointer;
+        border: none;
+        font-size: 1.1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-save {
+        background-color: #66bb6a;
+        color: white;
+    }
+
+        .btn-save:hover {
+            background-color: #4cae4c;
+        }
+
+    .btn-cancel {
+        background-color: transparent;
+        border: 2px solid #ff80ab;
+        color: #ff80ab;
+        margin-left: 1rem;
+    }
+
+        .btn-cancel:hover {
+            background-color: #ff80ab;
+            color: white;
+        }
+
+    .validation-summary-errors {
+        color: #e55353;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="page-shell">
+    <h2>Edit Profile</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="UserId" />
+
+        <div>
+            <label asp-for="FullName"></label>
+            <input asp-for="FullName" placeholder="Full Name" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div>
+            <label asp-for="Birthdate"></label>
+            <input asp-for="Birthdate" type="date" />
+            <span asp-validation-for="Birthdate" class="text-danger"></span>
+        </div>
+
+        <div>
+            <label asp-for="Username">Username (cannot be changed)</label>
+            <input asp-for="Username" readonly />
+        </div>
+
+        <div class="d-flex justify-content-start" style="margin-top:2rem;">
+            <button type="submit" class="btn btn-save">Save</button>
+            <a asp-action="Index" asp-controller="Profile" class="btn btn-cancel ms-3">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -9,18 +9,22 @@
     <div class="hero-left">
         <h1 class="project-title">Welcome to <span class="brand">GiftGenie</span></h1>
         <p class="project-desc">
-            Plan, share and receive the perfect gifts — all in one place.
+            Plan, share and receive the perfect gifts - all in one place.
         </p>
     </div>
 
     <div class="hero-right vert-stack">
-        @* Показываем кнопки Register и Log In только гостям *@
-        <a id="btn-register" class="btn green-outline big @(isGuest ? "" : "hidden")" href="#register-panel">Register</a>
-        <a id="btn-login" class="btn pink-outline big @(isGuest ? "" : "hidden")" href="#login-panel">Log&nbsp;In</a>
+        <a class="btn pink-outline big" href="/Users/Search">Search users</a>
 
-        @* Показываем кнопки Search users і View my wishlists тільки авторизованим *@
-        <a class="btn pink-outline big @(isGuest ? "hidden" : "")" href="/Users/Search">Search users</a>
-        <a class="btn green-outline big @(isGuest ? "hidden" : "")" href="/Wishlist/UserLists">View my wishlists</a>
+        @if (isGuest)
+        {
+            <a id="btn-register" class="btn green-outline big" href="#register-panel">Register</a>
+            <a id="btn-login" class="btn pink-outline big" href="#login-panel">Log&nbsp;In</a>
+        }
+        else
+        {
+            <a class="btn green-outline big" href="/Wishlist/UserLists">View my wishlists</a>
+        }
     </div>
 </div>
 
@@ -75,3 +79,143 @@
         </script>
     }
 }
+
+<style>
+    :root {
+        --pink: #ff80ab;
+        --green: #66bb6a;
+        --pink-light: #ffe4ec;
+        --green-light: #e0ffe4;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: radial-gradient(circle at 20% 20%,var(--pink-light) 0%,transparent 60%), radial-gradient(circle at 80% 80%,var(--green-light) 0%,transparent 60%);
+        filter: blur(100px);
+        transform: scale(1.1);
+    }
+
+    .navbar {
+        background: transparent !important;
+        backdrop-filter: blur(10px);
+    }
+
+    .hero-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3rem;
+        padding: 5rem 2rem;
+    }
+
+    .hero-left {
+        flex: 1 1 300px;
+    }
+
+    .hero-right {
+        flex: 1 1 250px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .vert-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .project-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: .5rem;
+    }
+
+    .brand {
+        color: var(--pink);
+    }
+
+    .project-desc {
+        font-size: 1.3rem;
+        max-width: 40ch;
+    }
+
+    .btn {
+        font-weight: 600;
+        border-radius: 3rem;
+        padding: 1.1rem 2.5rem;
+        text-align: center;
+        transition: .25s;
+        cursor: pointer;
+    }
+
+    .big {
+        font-size: 1.25rem;
+    }
+
+    .pink-outline {
+        border: 3px solid var(--pink);
+        color: var(--pink);
+        background: transparent;
+    }
+
+    .green-outline {
+        border: 3px solid var(--green);
+        color: var(--green);
+        background: transparent;
+    }
+
+    .pink-outline:hover {
+        background: var(--pink);
+        color: #fff;
+    }
+
+    .green-outline:hover {
+        background: var(--green);
+        color: #fff;
+    }
+
+    .pink {
+        background: var(--pink);
+        color: #fff;
+        border: none;
+    }
+
+    .green {
+        background: var(--green);
+        color: #fff;
+        border: none;
+    }
+
+    .slide-panel {
+        max-width: 420px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,.1);
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: all .3s ease;
+    }
+
+        .slide-panel.open {
+            opacity: 1;
+            height: auto;
+        }
+
+    .panel-title {
+        margin-bottom: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: .7rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 1.25rem;
+        margin-bottom: .8rem;
+    }
+</style>

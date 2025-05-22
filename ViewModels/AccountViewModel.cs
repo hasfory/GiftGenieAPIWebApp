@@ -25,7 +25,15 @@ namespace GiftGenieAPIWebApp.ViewModels
 
         [Required]
         [DataType(DataType.Date)]
+        [CustomValidation(typeof(RegisterViewModel), nameof(ValidateBirthdate))]
         public DateTime Birthdate { get; set; }
+
+        public static ValidationResult? ValidateBirthdate(DateTime birthdate, ValidationContext context)
+        {
+            if (birthdate > DateTime.Today)
+                return new ValidationResult("Birthdate cannot be in the future.");
+            return ValidationResult.Success;
+        }
     }
 
     public class LoginViewModel
